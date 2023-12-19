@@ -1,49 +1,13 @@
 import random
  
 class ZeroProofProtocol:
-    """
-    Class to implement the Zero-Proof Protocol for discrete logarithm for Alice and Bob.
- 
-    Attributes:
-    - p: int
-        The prime number representing the modulo.
-    - g: int
-        The base number for the discrete logarithm.
-    - a: int
-        The private key for Alice.
-    - b: int
-        The private key for Bob.
-    """
- 
     def __init__(self, p: int, g: int, a: int, b: int):
-        """
-        Constructor to instantiate the ZeroProofProtocol class.
- 
-        Parameters:
-        - p: int
-            The prime number representing the modulo.
-        - g: int
-            The base number for the discrete logarithm.
-        - a: int
-            The private key for Alice.
-        - b: int
-            The private key for Bob.
-        """
- 
         self.p = p
         self.g = g
         self.a = a
         self.b = b
  
     def calculate_public_keys(self):
-        """
-        Calculates the public keys for Alice and Bob.
- 
-        Returns:
-        - int, int:
-            The public keys for Alice and Bob respectively.
-        """
- 
         # Calculate the public key for Alice: A = g^a mod p
         A = pow(self.g, self.a, self.p)
  
@@ -53,36 +17,12 @@ class ZeroProofProtocol:
         return A, B
  
     def generate_challenge(self):
-        """
-        Generates a random challenge value for Alice and Bob.
- 
-        Returns:
-        - int:
-            The challenge value.
-        """
- 
         # Generate a random challenge value between 1 and p-1
         challenge = random.randint(1, self.p - 1)
  
         return challenge
  
     def verify_proof(self, A: int, B: int, challenge: int):
-        """
-        Verifies the proof of Alice and Bob.
- 
-        Parameters:
-        - A: int
-            The public key of Alice.
-        - B: int
-            The public key of Bob.
-        - challenge: int
-            The challenge value.
- 
-        Returns:
-        - bool:
-            True if the proof is valid, False otherwise.
-        """
- 
         # Calculate the proof value for Alice: a' = (a + challenge) mod (p-1)
         a_prime = (self.a + challenge) % (self.p - 1)
  
@@ -94,19 +34,43 @@ class ZeroProofProtocol:
             return True
         else:
             return False
+        
 
-p_value = 107
-g_value = 2
-a_value = 15
-b_value = 20
- 
-protocol = ZeroProofProtocol(p_value, g_value, a_value, b_value)
- 
-A_value, B_value = protocol.calculate_public_keys()
-print(f"The public key for Alice is {A_value}.")
-print(f"The public key for Bob is {B_value}.")
- 
-for i in range(100000000):
+def calculate_false_proof_probability(protocol, A, B, num_attempts=1000):
+        success_count = 0
+
+        for _ in range(num_attempts):
+            # Атакующая сторона выбирает случайное значение-вызов
+            challenge_attempt = random.randint(1, protocol.p - 1)
+
+            # Атакующая сторона пытается подобрать a' и b' так, чтобы условие было выполнено
+            a_prime_attempt = (protocol.a + challenge_attempt) % (protocol.p - 1)
+            b_prime_attempt = (protocol.b + challenge_attempt) % (protocol.p - 1)
+
+            # Проверка условия протокола с поддельными a' и b'
+            if pow(A, b_prime_attempt, protocol.p) == pow(B, a_prime_attempt, protocol.p):
+                success_count += 1
+
+        # Вероятность успешного ложного доказательства
+        probability = success_count / num_attempts
+        return probability
+
+
+if __name__ == "__main__":
+    p_value = 2048
+    g_value = 5
+    a_value = 1081
+    b_value = 1708
+    
+    protocol = ZeroProofProtocol(p_value, g_value, a_value, b_value)
+    A_value, B_value = protocol.calculate_public_keys()
+
+    false_proof_probability = calculate_false_proof_probability(protocol, A_value, B_value)
+    print(f"The probability of a successful false proof: {false_proof_probability}")
+
+    print(f"The public key for Alice is {A_value}.")
+    print(f"The public key for Bob is {B_value}.")
+    
     challenge_value = protocol.generate_challenge()
     proof_valid = protocol.verify_proof(A_value, B_value, challenge_value)
     if proof_valid:
