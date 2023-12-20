@@ -1,4 +1,4 @@
-import random
+import random, time
 
 class Prover:
     def __init__(self, p, A, x):
