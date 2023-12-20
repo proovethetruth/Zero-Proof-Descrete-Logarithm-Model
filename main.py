@@ -8,28 +8,20 @@ class ZeroProofProtocol:
         self.b = b
  
     def calculate_public_keys(self):
-        # Calculate the public key for Alice: A = g^a mod p
         A = pow(self.g, self.a, self.p)
- 
-        # Calculate the public key for Bob: B = g^b mod p
         B = pow(self.g, self.b, self.p)
- 
+
         return A, B
  
     def generate_challenge(self):
-        # Generate a random challenge value between 1 and p-1
         challenge = random.randint(1, self.p - 1)
  
         return challenge
  
     def verify_proof(self, A: int, B: int, challenge: int):
-        # Calculate the proof value for Alice: a' = (a + challenge) mod (p-1)
         a_prime = (self.a + challenge) % (self.p - 1)
- 
-        # Calculate the proof value for Bob: b' = (b + challenge) mod (p-1)
         b_prime = (self.b + challenge) % (self.p - 1)
  
-        # Verify the proof: A^b' mod p = B^a' mod p
         if pow(A, b_prime, self.p) == pow(B, a_prime, self.p):
             return True
         else:
@@ -40,18 +32,14 @@ def calculate_false_proof_probability(protocol, A, B, num_attempts=1000):
         success_count = 0
 
         for _ in range(num_attempts):
-            # Атакующая сторона выбирает случайное значение-вызов
             challenge_attempt = random.randint(1, protocol.p - 1)
 
-            # Атакующая сторона пытается подобрать a' и b' так, чтобы условие было выполнено
             a_prime_attempt = (protocol.a + challenge_attempt) % (protocol.p - 1)
             b_prime_attempt = (protocol.b + challenge_attempt) % (protocol.p - 1)
 
-            # Проверка условия протокола с поддельными a' и b'
             if pow(A, b_prime_attempt, protocol.p) == pow(B, a_prime_attempt, protocol.p):
                 success_count += 1
 
-        # Вероятность успешного ложного доказательства
         probability = success_count / num_attempts
         return probability
 
